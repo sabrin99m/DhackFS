@@ -1,0 +1,6 @@
+come montare il file system virtuale del pacchetto winfspy:
+
+python -m winfspy.memfs X: -v
+
+X: disco su cui viene montato
+verbose mode
