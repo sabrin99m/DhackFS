@@ -2,5 +2,9 @@ come montare il file system virtuale del pacchetto winfspy:
 
 python -m winfspy.memfs X: -v
 
+montare nuovofs da prompt:
+accedere a cartella di lavoro:   cd percorso
+esecuzione:                      python filesystem.py [-v] Mountpoint:   es. X:
+
 X: disco su cui viene montato
 verbose mode
