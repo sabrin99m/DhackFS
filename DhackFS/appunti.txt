@@ -8,3 +8,10 @@ esecuzione:                      python filesystem.py [-v] Mountpoint:   es. X:
 
 X: disco su cui viene montato
 verbose mode
+
+Le informazioni relative a mountpount e modalità di esecuzione vengono lette da linea di comando, che il main può salvare all'interno
+di variabili grazie al metodo ArgumentParser (ultimo blocco).
+Queste variabili vengono passate come parametri al metodo creaFS che sfrutta il costruttore della classe FileSystem importata da winfspy,
+insieme alle operazioni e alle volume_info.
+
+Errore: root_obj in operazioni ln 42
