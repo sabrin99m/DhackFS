@@ -13,5 +13,3 @@ Le informazioni relative a mountpount e modalità di esecuzione vengono lette da
 di variabili grazie al metodo ArgumentParser (ultimo blocco).
 Queste variabili vengono passate come parametri al metodo creaFS che sfrutta il costruttore della classe FileSystem importata da winfspy,
 insieme alle operazioni e alle volume_info.
-
-Errore: root_obj in operazioni ln 42
