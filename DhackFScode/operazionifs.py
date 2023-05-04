@@ -1,15 +1,15 @@
 import threading
 from pathlib import PureWindowsPath
-from winfspy import BaseFileSystemOperations, FILE_ATTRIBUTE
-from winfspy.plumbing.security_descriptor import SecurityDescriptor
+from winfspy import FILE_ATTRIBUTE
 
 import fileandfolder
 
 #operazioni supportate dal file system
 
-class operazioni(BaseFileSystemOperations):
+class operazioni:
     def __init__(self, volume_label, read_only=False):
-        super().__init__()
+        self._opened_objs = {}
+        
         max_file_nodes = 1024
         max_file_size = 16 * 1024 * 1024
         file_nodes = 1                                                             #al momento della creazione c'è un file node, total size=17179869184
@@ -25,7 +25,6 @@ class operazioni(BaseFileSystemOperations):
         self._root_obj = fileandfolder.Folder(
             self._root_path,
             FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY,
-            SecurityDescriptor.from_string("O:BAG:BAD:P(A;;FA;;;SY)(A;;FA;;;BA)(A;;FA;;;WD)"),
         )
         self._entries = {self._root_path: self._root_obj}  
         self._thread_lock = threading.Lock()
@@ -33,7 +32,7 @@ class operazioni(BaseFileSystemOperations):
     #operazioni su directory
     def crea_dir(self, path):
         path=self._root_path / path
-        dir=fileandfolder.Folder(path, FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY, self._root_obj.security_descriptor)
+        dir=fileandfolder.Folder(path, FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY)
         self._entries[path]=dir
         pass
 

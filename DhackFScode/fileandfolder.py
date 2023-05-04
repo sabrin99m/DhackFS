@@ -5,13 +5,10 @@ from winfspy.plumbing.win32_filetime import filetime_now
 #classi per la definizione di file e cartelle
 
 class FF:                                                                        #le classi File e Folder sono sottoclassi di Base
-    def get_path(self):
-        return self.path
     
-    def __init__(self, path, attributes, security_descriptor):
+    def __init__(self, path, attributes):
         self.path = path
         self.attributes = attributes
-        self.security_descriptor = security_descriptor
         now = filetime_now()
         self.creation_time = now
         self.last_access_time = now
@@ -20,6 +17,9 @@ class FF:                                                                       
         self.index_number = 0
         self.file_size = 0  
         pass
+
+    def get_path(self):
+        return self.path
 
     def get_info(self):
         return {
@@ -36,16 +36,16 @@ class FF:                                                                       
 
 class Folder(FF):
 
-    def __init__(self, path, attributes, security_descriptor):
-        super().__init__(path, attributes, security_descriptor)
+    def __init__(self, path, attributes):
+        super().__init__(path, attributes)
         self.allocation_size=0
         assert self.attributes & FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY                             
 
 
 class File(FF):
 
-    def __init__(self, path, attributes, security_descriptor, allocation_size=0):
-        super().__init__(path, attributes, security_descriptor, allocation_size)
+    def __init__(self, path, attributes, allocation_size=0):
+        super().__init__(path, attributes, allocation_size)
         self.data = bytearray(allocation_size)
         self.attributes |= FILE_ATTRIBUTE.FILE_ATTRIBUTE_ARCHIVE
         assert not self.attributes & FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY

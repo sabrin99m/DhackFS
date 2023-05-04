@@ -5,7 +5,6 @@ from pathlib import Path
 from winfspy.plumbing.win32_filetime import filetime_now
 
 from winfspy import (
-    FileSystem,
     enable_debug_log,
     CREATE_FILE_CREATE_OPTIONS,
     NTStatusObjectNameNotFound,
@@ -16,6 +15,7 @@ from winfspy import (
 )
 
 import operazionifs
+import file_sys
 
 #main e creazione del file system
 
@@ -33,7 +33,7 @@ def creaFS (mountpoint, label, prefix="", verbose=True, debug=False):           
     is_drive = mountpoint.parent == mountpoint
     reject_irp_prior_to_transact0 = not is_drive and not testing
 
-    vfs=FileSystem(
+    vfs=file_sys.VFileSys(
         str(mountpoint),
         operations,
         sector_size=512,
@@ -61,7 +61,7 @@ def main(mountpoint, label, prefix, verbose, debug):                            
     vfs=creaFS(mountpoint, label, prefix, verbose, debug) 
     vfs.start()                                                                    #importato da file_system.py di winfspy
     print("VirtualFS started")
-    quit=input("Want to quit? Y/N")
+    quit=input("Want to quit? Y/N: ")
     if quit=="Y":
         vfs.stop()
         print("VirtualFS stopped")
