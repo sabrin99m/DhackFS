@@ -30,22 +30,13 @@ class operazioni(BaseFileSystemOperations):
         self._entries = {self._root_path: self._root_obj}  
         self._thread_lock = threading.Lock()
 
-    def create(self, nomefile, opzioni, accesso, attributi, sicurezza, allocationsize):
-        BaseFileSystemOperations.create(self, nomefile, opzioni, accesso, attributi, sicurezza, allocationsize)
+    #operazioni su directory
+    def crea_dir(self, path):
+        path=self._root_path / path
+        dir=fileandfolder.Folder(path, FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY, self._root_obj.security_descriptor)
+        self._entries[path]=dir
         pass
-    def open(self, file_context):
-        BaseFileSystemOperations.open(self, file_context)
-        pass
-    def close(self, file_context):
-        BaseFileSystemOperations.close(self, file_context)
-        pass 
-    def read(self, file_context, offset, lenght):
-        BaseFileSystemOperations.read(self, file_context, offset, lenght)
-        pass
-    def write(self, file_context, buffer, offset, to_the_end, vincoli):
-        BaseFileSystemOperations.write(self, file_context, buffer, offset, to_the_end, vincoli)
-        pass
-    def rename(self, file_context, nomefile, nuovonome, exists):
-        BaseFileSystemOperations.rename(self, file_context, nomefile, nuovonome, exists)
+
+    
     
 

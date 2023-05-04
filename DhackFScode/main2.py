@@ -16,6 +16,7 @@ from winfspy import (
 )
 
 import operazionifs
+from parametri import volume_parameters
 
 #main e creazione del file system
 
@@ -30,12 +31,10 @@ def creaFS (mountpoint, label, prefix="", verbose=True, debug=False):           
     testing=False
     mountpoint = Path(mountpoint)
     operations= operazionifs.operazioni(label)
+
     is_drive = mountpoint.parent == mountpoint
     reject_irp_prior_to_transact0 = not is_drive and not testing
-
-    vfs=FileSystem(
-        str(mountpoint),
-        operations,
+    volume_params=volume_parameters.define_volume_params(
         sector_size=512,
         sectors_per_allocation_unit=1,
         volume_creation_time=filetime_now(),
@@ -49,8 +48,14 @@ def creaFS (mountpoint, label, prefix="", verbose=True, debug=False):           
         um_file_context_is_user_context2=1,
         file_system_name=str(mountpoint),
         prefix=prefix,
-        debug=debug,
         reject_irp_prior_to_transact0=reject_irp_prior_to_transact0,
+    )
+
+    vfs=FileSystem(
+        str(mountpoint),
+        operations,
+        debug, 
+        volume_params
         # security_timeout_valid=1,
         # security_timeout=10000,
     )
@@ -76,6 +81,3 @@ if __name__ == "__main__":                                                      
     parser.add_argument("-p", "--prefix", type=str, default="")
     args = parser.parse_args()
     main(args.mountpoint, args.label, args.prefix, args.verbose, args.debug)
-
-
-
