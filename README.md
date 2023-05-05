@@ -1,2 +1,2 @@
 # DhackFS
-Memory User Mode File System for Windows with WinFSP as interface between kernel and user file system. 
+User Mode File System for Windows using WinFsp as File System Proxy. 
