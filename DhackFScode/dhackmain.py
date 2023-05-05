@@ -2,17 +2,9 @@ import sys
 import argparse
 import logging
 from pathlib import Path
-from winfspy.plumbing.win32_filetime import filetime_now
 
-from winfspy import (
-    enable_debug_log,
-    CREATE_FILE_CREATE_OPTIONS,
-    NTStatusObjectNameNotFound,
-    NTStatusDirectoryNotEmpty,
-    NTStatusNotADirectory,
-    NTStatusObjectNameCollision,
-    NTStatusAccessDenied,
-)
+from winfspy.plumbing.win32_filetime import filetime_now
+from winfspy import enable_debug_log
 
 import operazionifs
 import file_sys
@@ -51,8 +43,6 @@ def creaFS (mountpoint, label, prefix="", verbose=True, debug=False):           
         prefix=prefix,
         debug=debug,
         reject_irp_prior_to_transact0=reject_irp_prior_to_transact0,
-        # security_timeout_valid=1,
-        # security_timeout=10000,
     )
     return vfs
 
@@ -61,8 +51,8 @@ def main(mountpoint, label, prefix, verbose, debug):                            
     vfs=creaFS(mountpoint, label, prefix, verbose, debug) 
     vfs.start()                                                                    #importato da file_system.py di winfspy
     print("VirtualFS started")
-    quit=input("Want to quit? Y/N: ")
-    if quit=="Y":
+    quit=input("Want to quit?")
+    if quit=="Y" or "Yes":
         vfs.stop()
         print("VirtualFS stopped")
     pass

@@ -67,4 +67,9 @@ class File(FF):
         return len(buffer)
 
     
+class openFF(FF):
+    def __init__(self, file_obj):
+        self.file_obj = file_obj
 
+    def __repr__(self):
+        return f"{type(self).__name__}:{self.file_obj.file_name}"

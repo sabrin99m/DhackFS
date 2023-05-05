@@ -1,21 +1,22 @@
 from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success
 from winfspy.plumbing import WinFSPyError, FileSystemAlreadyStarted, FileSystemNotStarted
 
-#definizione dell'oggetto file system e dell'intefaccia
+#definizione del file system e dell'intefaccia
 
 def interface(set_delete_available: bool):
     file_system_interface = ffi.new("FSP_FILE_SYSTEM_INTERFACE*")
-
-    # requires  WINFSP VERSION >= 1.4
-    try:
-        file_system_interface.Control = lib._trampolin_fs_Control
-
-        if set_delete_available:
-            # If not available, WinFSP fallback to CanDelete
-            file_system_interface.SetDelete = lib._trampolin_fs_SetDelete
-
-    except AttributeError:
-        pass
+    file_system_interface.Create = lib._trampolin_fs_Create                   
+    file_system_interface.Open = lib._trampolin_fs_Open
+    file_system_interface.Close = lib._trampolin_fs_Close
+    file_system_interface.Read = lib._trampolin_fs_Read
+    file_system_interface.Write = lib._trampolin_fs_Write
+    file_system_interface.ReadDirectory = lib._trampolin_fs_ReadDirectory
+    file_system_interface.GetFileInfo = lib._trampolin_fs_GetFileInfo
+    file_system_interface.CanDelete = lib._trampolin_fs_CanDelete
+    file_system_interface.Rename = lib._trampolin_fs_Rename
+    file_system_interface.SetBasicInfo = lib._trampolin_fs_SetBasicInfo
+    file_system_interface.SetFileSize = lib._trampolin_fs_SetFileSize
+    
 
     return file_system_interface
 
