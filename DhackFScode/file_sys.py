@@ -1,4 +1,4 @@
-from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success, file_system_interface_trampoline_factory
+from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success
 from winfspy.plumbing import WinFSPyError, FileSystemAlreadyStarted, FileSystemNotStarted
 
 from parametri import parametrifact

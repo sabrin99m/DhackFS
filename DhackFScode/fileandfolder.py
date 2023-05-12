@@ -4,27 +4,28 @@ from winfspy.plumbing.win32_filetime import filetime_now
 
 #classi per la definizione di file e cartelle, file and folder sono sottoclassi di FF
 
-class FF: 
+class FF:
+    @property
+    def name(self):
+        """File name, without the path"""
+        return self.path.name
 
+    @property
     def file_name(self):
         """File name, including the path"""
-        return str(self.path)                                                                    
-    
+        return str(self.path)
+
     def __init__(self, path, attributes, security_descriptor):
         self.path = path
         self.attributes = attributes
-        self.security_descriptor=security_descriptor                 #contiene le informazioni di accessibilità
+        self.security_descriptor = security_descriptor
         now = filetime_now()
         self.creation_time = now
         self.last_access_time = now
         self.last_write_time = now
         self.change_time = now
         self.index_number = 0
-        self.file_size = 0  
-        pass
-
-    def get_path(self):
-        return self.path
+        self.file_size = 0
 
     def get_file_info(self):
         return {
@@ -38,13 +39,8 @@ class FF:
             "index_number": self.index_number,
         }
 
-
-class Folder(FF):
-
-    def __init__(self, path, attributes, security_descriptor):
-        super().__init__(path, attributes, security_descriptor)
-        self.allocation_size=0
-        assert self.attributes & FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY                             
+    def __repr__(self):
+        return f"{type(self).__name__}:{self.file_name}"
 
 
 class File(FF):
@@ -57,6 +53,7 @@ class File(FF):
         self.attributes |= FILE_ATTRIBUTE.FILE_ATTRIBUTE_ARCHIVE
         assert not self.attributes & FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY
 
+    @property
     def allocation_size(self):
         return len(self.data)
 
@@ -80,7 +77,6 @@ class File(FF):
             self.adapt_allocation_size(file_size)
         self.file_size = file_size
 
-    #read and write
     def read(self, offset, length):
         if offset >= self.file_size:
             raise NTStatusEndOfFile()
@@ -96,10 +92,27 @@ class File(FF):
         self.data[offset:end_offset] = buffer
         return len(buffer)
 
-    
-class openFF(FF):
+    def constrained_write(self, buffer, offset):
+        if offset >= self.file_size:
+            return 0
+        end_offset = min(self.file_size, offset + len(buffer))
+        transferred_length = end_offset - offset
+        self.data[offset:end_offset] = buffer[:transferred_length]
+        return transferred_length
+
+
+class Folder(FF):
+    def __init__(self, path, attributes, security_descriptor):
+        super().__init__(path, attributes, security_descriptor)
+        self.allocation_size = 0
+        assert self.attributes & FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY
+
+
+class openFF:
     def __init__(self, file_obj):
         self.file_obj = file_obj
 
     def __repr__(self):
         return f"{type(self).__name__}:{self.file_obj.file_name}"
+
+
