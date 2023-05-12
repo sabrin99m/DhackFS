@@ -1,29 +1,16 @@
-import sys
 import argparse
-import logging
 from pathlib import Path
 
 from winfspy.plumbing.win32_filetime import filetime_now
-from winfspy import enable_debug_log
-
-import operazionifs
 import file_sys
+import operazionifs
 
 #main e creazione del file system
 
-def creaFS (mountpoint, label, prefix="", verbose=True, debug=False):                            #il file system viene creato con il costruttore della classe FileSystem
-    
-    if verbose:
-        logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
-    if debug:
-        enable_debug_log()
+def creaFS (mountpoint, label):                            #il file system viene creato con il costruttore della classe FileSystem
    
-    testing=False
     mountpoint = Path(mountpoint)
-    operations= operazionifs.operazioni(label)
-    is_drive = mountpoint.parent == mountpoint
-    reject_irp_prior_to_transact0 = not is_drive and not testing
+    operations = operazionifs.operazioni(label)
 
     vfs=file_sys.VFileSys(
         str(mountpoint),
@@ -39,33 +26,38 @@ def creaFS (mountpoint, label, prefix="", verbose=True, debug=False):           
         persistent_acls=1,
         post_cleanup_when_modified_only=1,
         um_file_context_is_user_context2=1,
-        file_system_name=str(mountpoint),
-        prefix=prefix,
-        debug=debug,
-        reject_irp_prior_to_transact0=reject_irp_prior_to_transact0,
+        file_system_name=str(mountpoint),    
     )
     return vfs
 
-
-def main(mountpoint, label, prefix, verbose, debug):                               #nel main il file system viene avviato e stoppato 
-    vfs=creaFS(mountpoint, label, prefix, verbose, debug) 
-    vfs.start()                                                                    #importato da file_system.py di winfspy
-    print("VirtualFS started")
-    quit=input("Want to quit?")
+#nel main il file system viene avviato e stoppato   
+def main(mountpoint, label):                               
+    vfs=creaFS(mountpoint, label)
+    
+    vfs.start()                                                                    
+    print("VirtualFS started.")
+    
+    #read-only mode
+    mode=input("Read-only mode? Y/N" )                                                
+    if mode=="Y":
+        vfs.restart(read_only_volume=True)
+        print("VirtualFS restarted in read-only mode.")   
+    else:
+        print("Working in w-mode.")                              
+    
+    quit=input("Want to quit?" )
     if quit=="Y" or "Yes":
         vfs.stop()
         print("VirtualFS stopped")
     pass
 
-if __name__ == "__main__":                                                         #dalla linea di comando vengono letti il mountpoint e le proprietà di esecuzione
+#dalla linea di comando viene letto il mountpoint, etichetta col nome del fs di default o stabilita dall'utente
+if __name__ == "__main__":                                                         
     parser = argparse.ArgumentParser()
     parser.add_argument("mountpoint")
-    parser.add_argument("-v", "--verbose", action="store_true")
-    parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("-l", "--label", type=str, default="Dhackfs")
-    parser.add_argument("-p", "--prefix", type=str, default="")
     args = parser.parse_args()
-    main(args.mountpoint, args.label, args.prefix, args.verbose, args.debug)
+    main(args.mountpoint, args.label)
 
 
 

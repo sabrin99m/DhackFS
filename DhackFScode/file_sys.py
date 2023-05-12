@@ -1,123 +1,266 @@
-from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success
+from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success, file_system_interface_trampoline_factory
 from winfspy.plumbing import WinFSPyError, FileSystemAlreadyStarted, FileSystemNotStarted
 
-#definizione del file system e dell'intefaccia
+from parametri import parametrifact
 
-def interface(set_delete_available: bool):
-    file_system_interface = ffi.new("FSP_FILE_SYSTEM_INTERFACE*")
-    file_system_interface.Create = lib._trampolin_fs_Create                   
-    file_system_interface.Open = lib._trampolin_fs_Open
-    file_system_interface.Close = lib._trampolin_fs_Close
-    file_system_interface.Read = lib._trampolin_fs_Read
-    file_system_interface.Write = lib._trampolin_fs_Write
-    file_system_interface.ReadDirectory = lib._trampolin_fs_ReadDirectory
-    file_system_interface.GetFileInfo = lib._trampolin_fs_GetFileInfo
-    file_system_interface.CanDelete = lib._trampolin_fs_CanDelete
-    file_system_interface.Rename = lib._trampolin_fs_Rename
-    file_system_interface.SetBasicInfo = lib._trampolin_fs_SetBasicInfo
-    file_system_interface.SetFileSize = lib._trampolin_fs_SetFileSize
-    
-
-    return file_system_interface
+class interfaceVFS:
+    @ffi.def_extern()
+    def _trampolin_fs_GetVolumeInfo(FileSystem, VolumeInfo):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_get_volume_info(VolumeInfo)
 
 
-def _volume_params_factory(
-    sector_size=0,
-    sectors_per_allocation_unit=0,
-    max_component_length=0,
-    volume_creation_time=0,
-    volume_serial_number=0,
-    transact_timeout=0,
-    irp_timeout=0,
-    irp_capacity=0,
-    file_info_timeout=0,
-    case_sensitive_search=0,
-    case_preserved_names=0,
-    unicode_on_disk=0,
-    persistent_acls=0,
-    reparse_points=0,
-    reparse_points_access_check=0,
-    named_streams=0,
-    hard_links=0,
-    extended_attributes=0,
-    read_only_volume=0,
-    post_cleanup_when_modified_only=0,
-    pass_query_directory_pattern=0,
-    always_use_double_buffering=0,
-    pass_query_directory_file_name=0,
-    flush_and_purge_on_cleanup=0,
-    device_control=0,
-    um_file_context_is_user_context2=0,
-    um_file_context_is_full_context=0,
-    um_reserved_flags=0,
-    allow_open_in_kernel_mode=0,
-    case_preserved_extended_attributes=0,
-    wsl_features=0,
-    directory_marker_as_next_offset=0,
-    reject_irp_prior_to_transact0=0,
-    km_reserved_flags=0,
-    prefix="",
-    file_system_name="",
-    volume_info_timeout_valid=0,
-    dir_info_timeout_valid=0,
-    security_timeout_valid=0,
-    stream_info_timeout_valid=0,
-    km_additional_reserved_flags=0,
-    volume_info_timeout=0,
-    dir_info_timeout=0,
-    security_timeout=0,
-    stream_info_timeout=0,
-):
-    volume_params = ffi.new("FSP_FSCTL_VOLUME_PARAMS*")
-    lib.configure_FSP_FSCTL_VOLUME_PARAMS(
-        volume_params,
-        sector_size,
-        sectors_per_allocation_unit,
-        max_component_length,
-        volume_creation_time,
-        volume_serial_number,
-        transact_timeout,
-        irp_timeout,
-        irp_capacity,
-        file_info_timeout,
-        case_sensitive_search,
-        case_preserved_names,
-        unicode_on_disk,
-        persistent_acls,
-        reparse_points,
-        reparse_points_access_check,
-        named_streams,
-        hard_links,
-        extended_attributes,
-        read_only_volume,
-        post_cleanup_when_modified_only,
-        pass_query_directory_pattern,
-        always_use_double_buffering,
-        pass_query_directory_file_name,
-        flush_and_purge_on_cleanup,
-        device_control,
-        um_file_context_is_user_context2,
-        um_file_context_is_full_context,
-        um_reserved_flags,
-        allow_open_in_kernel_mode,
-        case_preserved_extended_attributes,
-        wsl_features,
-        directory_marker_as_next_offset,
-        reject_irp_prior_to_transact0,
-        km_reserved_flags,
-        prefix,
-        file_system_name,
-        volume_info_timeout_valid,
-        dir_info_timeout_valid,
-        security_timeout_valid,
-        stream_info_timeout_valid,
-        km_additional_reserved_flags,
-        volume_info_timeout,
-        dir_info_timeout,
-        security_timeout,
-        stream_info_timeout,
-    )
-    return volume_params
+    @ffi.def_extern()
+    def _trampolin_fs_SetVolumeLabel(FileSystem, VolumeLabel, VolumeInfo):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_set_volume_label(VolumeLabel, VolumeInfo)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_GetSecurityByName(
+        FileSystem,
+        FileName,
+        PFileAttributesOrReparsePointIndex,
+        SecurityDescriptor,
+        PSecurityDescriptorSize,
+    ):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_get_security_by_name(
+            FileName, PFileAttributesOrReparsePointIndex, SecurityDescriptor, PSecurityDescriptorSize,
+        )
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Create(
+        FileSystem,
+        FileName,
+        CreateOptions,
+        GrantedAccess,
+        FileAttributes,
+        SecurityDescriptor,
+        AllocationSize,
+        PFileContext,
+        FileInfo,
+    ):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_create(
+            FileName,
+            CreateOptions,
+            GrantedAccess,
+            FileAttributes,
+            SecurityDescriptor,
+            AllocationSize,
+            PFileContext,
+            FileInfo,
+        )
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Open(FileSystem, FileName, CreateOptions, GrantedAccess, PFileContext, FileInfo):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_open(FileName, CreateOptions, GrantedAccess, PFileContext, FileInfo)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Overwrite(
+        FileSystem, FileContext, FileAttributes, ReplaceFileAttributes, AllocationSize, FileInfo,
+    ):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_overwrite(
+            FileContext, FileAttributes, ReplaceFileAttributes, AllocationSize, FileInfo
+        )
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Cleanup(FileSystem, FileContext, FileName, Flags):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        user_context.ll_cleanup(FileContext, FileName, Flags)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Close(FileSystem, FileContext):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        user_context.ll_close(FileContext)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Read(FileSystem, FileContext, Buffer, Offset, Length, PBytesTransferred):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_read(FileContext, Buffer, Offset, Length, PBytesTransferred)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Write(
+        FileSystem,
+        FileContext,
+        Buffer,
+        Offset,
+        Length,
+        WriteToEndOfFile,
+        ConstrainedIo,
+        PBytesTransferred,
+        FileInfo,
+    ):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_write(
+            FileContext,
+            Buffer,
+            Offset,
+            Length,
+            WriteToEndOfFile,
+            ConstrainedIo,
+            PBytesTransferred,
+            FileInfo,
+        )
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Flush(FileSystem, FileContext, FileInfo):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_flush(FileContext, FileInfo)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_GetFileInfo(FileSystem, FileContext, FileInfo):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_get_file_info(FileContext, FileInfo)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_SetBasicInfo(
+        FileSystem,
+        FileContext,
+        FileAttributes,
+        CreationTime,
+        LastAccessTime,
+        LastWriteTime,
+        ChangeTime,
+        FileInfo,
+    ):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_set_basic_info(
+            FileContext,
+            FileAttributes,
+            CreationTime,
+            LastAccessTime,
+            LastWriteTime,
+            ChangeTime,
+            FileInfo,
+        )
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_SetFileSize(FileSystem, FileContext, NewSize, SetAllocationSize, FileInfo):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_set_file_size(FileContext, NewSize, SetAllocationSize, FileInfo)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_CanDelete(FileSystem, FileContext, FileName):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_can_delete(FileContext, FileName)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_Rename(FileSystem, FileContext, FileName, NewFileName, ReplaceIfExists):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_rename(FileContext, FileName, NewFileName, ReplaceIfExists)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_GetSecurity(FileSystem, FileContext, SecurityDescriptor, PSecurityDescriptorSize):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_get_security(FileContext, SecurityDescriptor, PSecurityDescriptorSize)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_SetSecurity(FileSystem, FileContext, SecurityInformation, ModificationDescriptor):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_set_security(FileContext, SecurityInformation, ModificationDescriptor)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_ReadDirectory(
+        FileSystem, FileContext, Pattern, Marker, Buffer, Length, PBytesTransferred
+    ):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_read_directory(
+            FileContext, Pattern, Marker, Buffer, Length, PBytesTransferred
+        )
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_ResolveReparsePoints(
+        FileSystem, FileName, ReparsePointIndex, ResolveLastPathComponent, PIoStatus, Buffer, PSize,
+    ):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_resolve_reparse_points(
+            FileName, ReparsePointIndex, ResolveLastPathComponent, PIoStatus, Buffer, PSize
+        )
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_GetReparsePoint(FileSystem, FileContext, FileName, Buffer, PSize):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_get_reparse_point(FileContext, FileName, Buffer, PSize)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_SetReparsePoint(FileSystem, FileContext, FileName, Buffer, Size):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_set_reparse_point(FileContext, FileName, Buffer, Size)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_DeleteReparsePoint(FileSystem, FileContext, FileName, Buffer, Size):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_delete_reparse_point(FileContext, FileName, Buffer, Size)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_GetStreamInfo(FileSystem, FileContext, Buffer, Length, PBytesTransferred):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_get_stream_info(FileContext, Buffer, Length, PBytesTransferred)
+
+
+    @ffi.def_extern()
+    def _trampolin_fs_GetDirInfoByName(FileSystem, FileContext, FileName, DirInfo):
+        user_context = ffi.from_handle(FileSystem.UserContext)
+        return user_context.ll_get_dir_info_by_name(FileContext, FileName, DirInfo)
+
+
+
+    def file_system_interface(set_delete_available: bool):
+        file_system_interface = ffi.new("FSP_FILE_SYSTEM_INTERFACE*")
+        file_system_interface.GetVolumeInfo = lib._trampolin_fs_GetVolumeInfo
+        file_system_interface.SetVolumeLabel = lib._trampolin_fs_SetVolumeLabel
+        file_system_interface.GetSecurityByName = lib._trampolin_fs_GetSecurityByName
+        file_system_interface.Create = lib._trampolin_fs_Create
+        file_system_interface.Open = lib._trampolin_fs_Open
+        file_system_interface.Overwrite = lib._trampolin_fs_Overwrite
+        file_system_interface.Cleanup = lib._trampolin_fs_Cleanup
+        file_system_interface.Close = lib._trampolin_fs_Close
+        file_system_interface.Read = lib._trampolin_fs_Read
+        file_system_interface.Write = lib._trampolin_fs_Write
+        file_system_interface.Flush = lib._trampolin_fs_Flush
+        file_system_interface.GetFileInfo = lib._trampolin_fs_GetFileInfo
+        file_system_interface.SetBasicInfo = lib._trampolin_fs_SetBasicInfo
+        file_system_interface.SetFileSize = lib._trampolin_fs_SetFileSize
+        file_system_interface.CanDelete = lib._trampolin_fs_CanDelete
+        file_system_interface.Rename = lib._trampolin_fs_Rename
+        file_system_interface.GetSecurity = lib._trampolin_fs_GetSecurity
+        file_system_interface.SetSecurity = lib._trampolin_fs_SetSecurity
+        file_system_interface.ReadDirectory = lib._trampolin_fs_ReadDirectory
+        file_system_interface.ResolveReparsePoints = lib._trampolin_fs_ResolveReparsePoints
+        file_system_interface.GetReparsePoint = lib._trampolin_fs_GetReparsePoint
+        file_system_interface.SetReparsePoint = lib._trampolin_fs_SetReparsePoint
+        file_system_interface.DeleteReparsePoint = lib._trampolin_fs_DeleteReparsePoint
+        file_system_interface.GetStreamInfo = lib._trampolin_fs_GetStreamInfo
+        file_system_interface.GetDirInfoByName = lib._trampolin_fs_GetDirInfoByName
+
+        return file_system_interface
+
+
 
 class VFileSys:
     def __init__(self, mountpoint, operations, debug=False, **volume_params):
@@ -133,10 +276,12 @@ class VFileSys:
     
     def _apply_volume_params(self):
 
-        self._volume_params = _volume_params_factory(**self.volume_params)
-        self._file_system_interface = interface(
-            set_delete_available=True
+        self._volume_params = parametrifact._volume_params_factory(**self.volume_params)
+        
+        self._file_system_interface = interfaceVFS.file_system_interface(
+            set_delete_available=False
         )
+
         self._file_system_ptr = ffi.new("FSP_FILE_SYSTEM**")
 
     def _create_file_system(self):

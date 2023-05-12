@@ -2,13 +2,18 @@ from winfspy import FILE_ATTRIBUTE, NTStatusEndOfFile
 from winfspy.plumbing.win32_filetime import filetime_now
 
 
-#classi per la definizione di file e cartelle
+#classi per la definizione di file e cartelle, file and folder sono sottoclassi di FF
 
-class FF:                                                                        #le classi File e Folder sono sottoclassi di Base
+class FF: 
+
+    def file_name(self):
+        """File name, including the path"""
+        return str(self.path)                                                                    
     
-    def __init__(self, path, attributes):
+    def __init__(self, path, attributes, security_descriptor):
         self.path = path
         self.attributes = attributes
+        self.security_descriptor=security_descriptor                 #contiene le informazioni di accessibilità
         now = filetime_now()
         self.creation_time = now
         self.last_access_time = now
@@ -21,7 +26,7 @@ class FF:                                                                       
     def get_path(self):
         return self.path
 
-    def get_info(self):
+    def get_file_info(self):
         return {
             "file_attributes": self.attributes,
             "allocation_size": self.allocation_size,
@@ -36,21 +41,46 @@ class FF:                                                                       
 
 class Folder(FF):
 
-    def __init__(self, path, attributes):
-        super().__init__(path, attributes)
+    def __init__(self, path, attributes, security_descriptor):
+        super().__init__(path, attributes, security_descriptor)
         self.allocation_size=0
         assert self.attributes & FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY                             
 
 
 class File(FF):
 
-    def __init__(self, path, attributes, allocation_size=0):
-        super().__init__(path, attributes, allocation_size)
+    allocation_unit = 4096
+
+    def __init__(self, path, attributes, security_descriptor, allocation_size=0):
+        super().__init__(path, attributes, security_descriptor)
         self.data = bytearray(allocation_size)
         self.attributes |= FILE_ATTRIBUTE.FILE_ATTRIBUTE_ARCHIVE
         assert not self.attributes & FILE_ATTRIBUTE.FILE_ATTRIBUTE_DIRECTORY
 
+    def allocation_size(self):
+        return len(self.data)
 
+    def set_allocation_size(self, allocation_size):
+        if allocation_size < self.allocation_size:
+            self.data = self.data[:allocation_size]
+        if allocation_size > self.allocation_size:
+            self.data += bytearray(allocation_size - self.allocation_size)
+        assert self.allocation_size == allocation_size
+        self.file_size = min(self.file_size, allocation_size)
+
+    def adapt_allocation_size(self, file_size):
+        units = (file_size + self.allocation_unit - 1) // self.allocation_unit
+        self.set_allocation_size(units * self.allocation_unit)
+
+    def set_file_size(self, file_size):
+        if file_size < self.file_size:
+            zeros = bytearray(self.file_size - file_size)
+            self.data[file_size : self.file_size] = zeros
+        if file_size > self.allocation_size:
+            self.adapt_allocation_size(file_size)
+        self.file_size = file_size
+
+    #read and write
     def read(self, offset, length):
         if offset >= self.file_size:
             raise NTStatusEndOfFile()
