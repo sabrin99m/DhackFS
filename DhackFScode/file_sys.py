@@ -323,6 +323,14 @@ class VFileSys:
         self._create_file_system()
         self.start()
 
+    #persistenza    
+
+    def flush(underlyingdir):
+
+
+        pass
+
+
     def stop(self):
         if not self.started:
             raise FileSystemNotStarted()
