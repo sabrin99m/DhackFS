@@ -1,7 +1,10 @@
+from cryptography.fernet import Fernet
+
 from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success
 from winfspy.plumbing import WinFSPyError, FileSystemAlreadyStarted, FileSystemNotStarted
 
-from parametri import parametrifact
+from params_fs import parametrifact
+
 
 class interfaceVFS:
     @ffi.def_extern()
@@ -89,6 +92,7 @@ class interfaceVFS:
         return user_context.ll_read(FileContext, Buffer, Offset, Length, PBytesTransferred)
 
 
+
     @ffi.def_extern()
     def _trampolin_fs_Write(
         FileSystem,
@@ -112,7 +116,6 @@ class interfaceVFS:
             PBytesTransferred,
             FileInfo,
         )
-
 
     @ffi.def_extern()
     def _trampolin_fs_Flush(FileSystem, FileContext, FileInfo):
@@ -263,16 +266,17 @@ class interfaceVFS:
 
 
 class VFileSys:
-    def __init__(self, mountpoint, operations, debug=False, **volume_params):
+    def __init__(self, mountpoint, operations, persistent, debug=False, **volume_params):
         self.started = False
         
         self.debug = debug
         self.volume_params = volume_params
         self.mountpoint = mountpoint
         self.operations = operations
+        self.persistent = persistent
         self._apply_volume_params()
         self._create_file_system() 
-
+        
     
     def _apply_volume_params(self):
 
@@ -321,20 +325,19 @@ class VFileSys:
         self.volume_params.update(volume_params)
         self._apply_volume_params()
         self._create_file_system()
-        self.start()
+        self.start()  
 
-    #persistenza    
-
-    def flush(underlyingdir):
-
-
+    def flush():
         pass
 
 
     def stop(self):
+        
         if not self.started:
             raise FileSystemNotStarted()
         self.started = False
 
         lib.FspFileSystemStopDispatcher(self._file_system_ptr[0])
         lib.FspFileSystemDelete(self._file_system_ptr[0])
+
+        
