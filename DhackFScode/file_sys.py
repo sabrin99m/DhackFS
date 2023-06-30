@@ -1,5 +1,3 @@
-from cryptography.fernet import Fernet
-
 from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success
 from winfspy.plumbing import WinFSPyError, FileSystemAlreadyStarted, FileSystemNotStarted
 

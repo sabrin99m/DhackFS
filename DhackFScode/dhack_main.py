@@ -48,7 +48,6 @@ def create_FS (mountpoint, operations, persistent):
 #nel main il file system viene avviato e stoppato   
 
 def main(mountpoint, label, persistent):  
-
     #verifica se la partizione è libera, altrimenti ne viene scelta un'altra
     mountpoint = free_disk(mountpoint)
     mountpoint = Path(mountpoint)
