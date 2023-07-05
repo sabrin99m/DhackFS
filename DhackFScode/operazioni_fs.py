@@ -545,7 +545,7 @@ class operazioni(BaseFileSystemOperations):
                     name = PureWindowsPath(str(name).replace(".~lock.", "").removesuffix("#"))
                 file_obj = self._entries[name]
                 if file_obj.allocation_size == 0:
-                    data = None
+                    encrypted_data = None
                 else:
                     data = file_obj.read(0, file_obj.allocation_size-1)
                     encrypted_data = encrypt_password.encrypt_data(data, key)

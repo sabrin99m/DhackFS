@@ -10,10 +10,13 @@ import persistence
 
 def free_disk(mountpoint):
     # Get memory partitions
+    mountpoint=str(mountpoint)
     partitions=win32api.GetLogicalDriveStrings()
-    mlist=list(mountpoint)
-    if mlist[0] in partitions:
-        mountpoint=print("Mountpoint not available, choose another one: ")
+    if mountpoint == "C:":
+        mountpoint = input("Forbidden, choose another one.")
+        free_disk(mountpoint)
+    elif mountpoint in partitions:
+        mountpoint = input("Mountpoint not available, choose another one: ")
         free_disk(mountpoint)
     else:
         pass

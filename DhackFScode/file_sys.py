@@ -1,7 +1,7 @@
 from winfspy.plumbing import ffi, lib, cook_ntstatus, nt_success
 from winfspy.plumbing import WinFSPyError, FileSystemAlreadyStarted, FileSystemNotStarted
 
-from params_fs import parametrifact
+from params_fs import paramsfact
 
 
 class interfaceVFS:
@@ -278,7 +278,7 @@ class VFileSys:
     
     def _apply_volume_params(self):
 
-        self._volume_params = parametrifact._volume_params_factory(**self.volume_params)
+        self._volume_params = paramsfact._volume_params_factory(**self.volume_params)
         
         self._file_system_interface = interfaceVFS.file_system_interface(
             set_delete_available=False

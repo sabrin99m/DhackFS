@@ -1,6 +1,6 @@
 from winfspy.plumbing import ffi, lib
 
-class parametrifact:
+class paramsfact:
     def _volume_params_factory(
         sector_size=0,
         sectors_per_allocation_unit=0,
